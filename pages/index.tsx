@@ -230,7 +230,7 @@ export default function Home() {
                                       {doc.pageContent}
                                     </ReactMarkdown>
                                     <p className="mt-2">
-                                      <b>Source:</b> {doc.metadata.source}
+                                      <b>Source:</b> https://livingo.s3.amazonaws.com/media/discharge_sheets/{doc.metadata.path}
                                     </p>
                                   </AccordionContent>
                                 </AccordionItem>
