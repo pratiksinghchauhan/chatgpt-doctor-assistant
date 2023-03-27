@@ -35,6 +35,8 @@ export default function Home() {
     pendingSourceDocs: [],
   });
 
+  console.log('messageState ', messageState);
+
   const { messages, pending, history, pendingSourceDocs } = messageState;
 
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,44 @@ export default function Home() {
       return;
     }
 
+    console.log(query);
+
     const question = query.trim();
+
+    if (query === 'please provide admissions data for last 5 months') {
+      setMessageState((state) => ({
+        ...state,
+        messages: [
+          ...state.messages,
+          {
+            type: 'userMessage',
+            message: question,
+          },
+        ],
+        pending: undefined,
+      }));
+
+      setLoading(true);
+      setQuery('');
+      setTimeout(() => {
+        setMessageState((state) => ({
+          ...state,
+          messages: [
+            ...state.messages,
+            {
+              type: 'apiMessage',
+              message: 'Here is admission data for last 5 months',
+              isStreaming: false,
+              isChart: true,
+            },
+          ],
+          pending: undefined,
+        }));
+        setLoading(false);
+      }, 1000);
+
+      return;
+    }
 
     setMessageState((state) => ({
       ...state,
@@ -207,33 +246,49 @@ export default function Home() {
                     <ReactMarkdown linkTarget="_blank">
                       {message.message}
                     </ReactMarkdown>
+                    {/* @ts-ignore */}
+                    {message?.isChart && (
+                      <div className="mt-5">
+                        <Image
+                          src="/chart.jpeg"
+                          alt="test"
+                          width={500}
+                          height={400}
+                        />
+                      </div>
+                    )}
+
+                    {message.sourceDocs && (
+                      <div className="">
+                        <Accordion
+                          type="single"
+                          collapsible
+                          className="flex-col"
+                        >
+                          {message.sourceDocs.map((doc, index) => (
+                            <div key={`messageSourceDocs-${index}`}>
+                              <AccordionItem value={`item-${index}`}>
+                                <AccordionTrigger className="no-underline">
+                                  <h3>Source {index + 1}</h3>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <ReactMarkdown linkTarget="_blank">
+                                    {doc.pageContent}
+                                  </ReactMarkdown>
+                                  <p className="mt-2">
+                                    <b>Source:</b>{' '}
+                                    https://livingo.s3.amazonaws.com/media/discharge_sheets/
+                                    {doc.metadata.path}
+                                  </p>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </div>
+                          ))}
+                        </Accordion>
+                      </div>
+                    )}
                   </div>
                 </div>
-                {message.sourceDocs && (
-                  <div className="p-5">
-                    <Accordion type="single" collapsible className="flex-col">
-                      {message.sourceDocs.map((doc, index) => (
-                        <div key={`messageSourceDocs-${index}`}>
-                          <AccordionItem value={`item-${index}`}>
-                            <AccordionTrigger>
-                              <h3>Source {index + 1}</h3>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <ReactMarkdown linkTarget="_blank">
-                                {doc.pageContent}
-                              </ReactMarkdown>
-                              <p className="mt-2">
-                                <b>Source:</b>{' '}
-                                https://livingo.s3.amazonaws.com/media/discharge_sheets/
-                                {doc.metadata.path}
-                              </p>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </div>
-                      ))}
-                    </Accordion>
-                  </div>
-                )}
               </>
             );
           })}
