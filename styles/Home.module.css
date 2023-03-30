@@ -23,7 +23,7 @@
   resize: none;
   font-size: 1.1rem;
   padding: 1rem 2rem 1rem 2rem;
-  width: 75vw;
+  width: 100%;
   border-radius: 0.5rem;
   border: 1px solid #d9d9e3;
   background: #ffffff;
@@ -171,6 +171,16 @@
   margin-right: 1rem;
   border-radius: 0.1rem;
   height: 100%;
+  width: 40px;
+  border-radius: 5px;
+}
+
+.boticon {
+  background-color: #60a5fa;
+  padding-right: 7px;
+  padding-left: 7px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .markdownanswer h1,
@@ -189,8 +199,8 @@
 }
 
 .cloud {
-  width: 75vw;
-  height: 65vh;
+  /* width: 75vw; */
+  height: 85vh;
   background: #ffffff;
   border-radius: 0.5rem;
   border: 1px solid #d9d9e3;

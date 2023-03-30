@@ -35,6 +35,8 @@ export default function Home() {
     pendingSourceDocs: [],
   });
 
+  console.log('messageState ', messageState);
+
   const { messages, pending, history, pendingSourceDocs } = messageState;
 
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,44 @@ export default function Home() {
       return;
     }
 
+    console.log(query);
+
     const question = query.trim();
+
+    if (query === 'please provide admissions data for last 5 months') {
+      setMessageState((state) => ({
+        ...state,
+        messages: [
+          ...state.messages,
+          {
+            type: 'userMessage',
+            message: question,
+          },
+        ],
+        pending: undefined,
+      }));
+
+      setLoading(true);
+      setQuery('');
+      setTimeout(() => {
+        setMessageState((state) => ({
+          ...state,
+          messages: [
+            ...state.messages,
+            {
+              type: 'apiMessage',
+              message: 'Here is admission data for last 5 months',
+              isStreaming: false,
+              isChart: true,
+            },
+          ],
+          pending: undefined,
+        }));
+        setLoading(false);
+      }, 1000);
+
+      return;
+    }
 
     setMessageState((state) => ({
       ...state,
@@ -162,165 +201,171 @@ export default function Home() {
 
   return (
     <>
-      <Layout>
-        <div className="mx-auto flex flex-col gap-4">
-          <h1 className="text-2xl font-bold leading-[1.1] tracking-tighter text-center">
-            Livingo Doctor Assistant
-          </h1>
-          <main className={styles.main}>
-            <div className={styles.cloud}>
-              <div ref={messageListRef} className={styles.messagelist}>
-                {chatMessages.map((message, index) => {
-                  let icon;
-                  let className;
-                  if (message.type === 'apiMessage') {
-                    icon = (
-                      <Image
-                        src="/bot-image.png"
-                        alt="AI"
-                        width="40"
-                        height="40"
-                        className={styles.boticon}
-                        priority
-                      />
-                    );
-                    className = styles.apimessage;
-                  } else {
-                    icon = (
-                      <Image
-                        src="/usericon.png"
-                        alt="Me"
-                        width="30"
-                        height="30"
-                        className={styles.usericon}
-                        priority
-                      />
-                    );
-                    // The latest message sent by the user will be animated while waiting for a response
-                    className =
-                      loading && index === chatMessages.length - 1
-                        ? styles.usermessagewaiting
-                        : styles.usermessage;
-                  }
-                  return (
-                    <>
-                      <div key={`chatMessage-${index}`} className={className}>
-                        {icon}
-                        <div className={styles.markdownanswer}>
-                          <ReactMarkdown linkTarget="_blank">
-                            {message.message}
-                          </ReactMarkdown>
-                        </div>
+      {/* <Layout> */}
+      {/* <div className="mx-auto flex flex-col gap-4"> */}
+      {/* <main className={styles.main}> */}
+      <div className={styles.cloud}>
+        <div ref={messageListRef} className={styles.messagelist}>
+          {chatMessages.map((message, index) => {
+            let icon;
+            let className;
+            if (message.type === 'apiMessage') {
+              icon = (
+                <Image
+                  src="/LIV.png"
+                  alt="AI"
+                  width="40"
+                  height="40"
+                  className={styles.boticon}
+                  priority
+                />
+              );
+              className = styles.apimessage;
+            } else {
+              icon = (
+                <Image
+                  src="/Avatar.png"
+                  alt="Me"
+                  width="30"
+                  height="30"
+                  className={styles.usericon}
+                  priority
+                />
+              );
+              // The latest message sent by the user will be animated while waiting for a response
+              className =
+                loading && index === chatMessages.length - 1
+                  ? styles.usermessagewaiting
+                  : styles.usermessage;
+            }
+            return (
+              <>
+                <div key={`chatMessage-${index}`} className={className}>
+                  {icon}
+                  <div className={styles.markdownanswer}>
+                    <ReactMarkdown linkTarget="_blank">
+                      {message.message}
+                    </ReactMarkdown>
+                    {/* @ts-ignore */}
+                    {message?.isChart && (
+                      <div className="mt-5">
+                        <Image
+                          src="/chart.jpeg"
+                          alt="test"
+                          width={500}
+                          height={400}
+                        />
                       </div>
-                      {message.sourceDocs && (
-                        <div className="p-5">
-                          <Accordion
-                            type="single"
-                            collapsible
-                            className="flex-col"
-                          >
-                            {message.sourceDocs.map((doc, index) => (
-                              <div key={`messageSourceDocs-${index}`}>
-                                <AccordionItem value={`item-${index}`}>
-                                  <AccordionTrigger>
-                                    <h3>Source {index + 1}</h3>
-                                  </AccordionTrigger>
-                                  <AccordionContent>
-                                    <ReactMarkdown linkTarget="_blank">
-                                      {doc.pageContent}
-                                    </ReactMarkdown>
-                                    <p className="mt-2">
-                                      <b>Source:</b> https://livingo.s3.amazonaws.com/media/discharge_sheets/{doc.metadata.path}
-                                    </p>
-                                  </AccordionContent>
-                                </AccordionItem>
-                              </div>
-                            ))}
-                          </Accordion>
-                        </div>
-                      )}
-                    </>
-                  );
-                })}
-                {sourceDocs.length > 0 && (
-                  <div className="p-5">
-                    <Accordion type="single" collapsible className="flex-col">
-                      {sourceDocs.map((doc, index) => (
-                        <div key={`sourceDocs-${index}`}>
-                          <AccordionItem value={`item-${index}`}>
-                            <AccordionTrigger>
-                              <h3>Source {index + 1}</h3>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <ReactMarkdown linkTarget="_blank">
-                                {doc.pageContent}
-                              </ReactMarkdown>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </div>
-                      ))}
-                    </Accordion>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className={styles.center}>
-              <div className={styles.cloudform}>
-                <form onSubmit={handleSubmit}>
-                  <textarea
-                    disabled={loading}
-                    onKeyDown={handleEnter}
-                    ref={textAreaRef}
-                    autoFocus={false}
-                    rows={1}
-                    maxLength={512}
-                    id="userInput"
-                    name="userInput"
-                    placeholder={
-                      loading
-                        ? 'Waiting for response...'
-                        : 'Lets discuss about your case here?'
-                    }
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className={styles.textarea}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={styles.generatebutton}
-                  >
-                    {loading ? (
-                      <div className={styles.loadingwheel}>
-                        <LoadingDots color="#000" />
-                      </div>
-                    ) : (
-                      // Send icon SVG in input field
-                      <svg
-                        viewBox="0 0 20 20"
-                        className={styles.svgicon}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                      </svg>
                     )}
-                  </button>
-                </form>
-              </div>
+
+                    {message.sourceDocs && (
+                      <div className="">
+                        <Accordion
+                          type="single"
+                          collapsible
+                          className="flex-col"
+                        >
+                          {message.sourceDocs.map((doc, index) => (
+                            <div key={`messageSourceDocs-${index}`}>
+                              <AccordionItem value={`item-${index}`}>
+                                <AccordionTrigger className="no-underline">
+                                  <h3>Source {index + 1}</h3>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <ReactMarkdown linkTarget="_blank">
+                                    {doc.pageContent}
+                                  </ReactMarkdown>
+                                  <p className="mt-2">
+                                    <b>Source:</b>{' '}
+                                    https://livingo.s3.amazonaws.com/media/discharge_sheets/
+                                    {doc.metadata.path}
+                                  </p>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </div>
+                          ))}
+                        </Accordion>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            );
+          })}
+          {sourceDocs.length > 0 && (
+            <div className="p-5">
+              <Accordion type="single" collapsible className="flex-col">
+                {sourceDocs.map((doc, index) => (
+                  <div key={`sourceDocs-${index}`}>
+                    <AccordionItem value={`item-${index}`}>
+                      <AccordionTrigger>
+                        <h3>Source {index + 1}</h3>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ReactMarkdown linkTarget="_blank">
+                          {doc.pageContent}
+                        </ReactMarkdown>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </div>
+                ))}
+              </Accordion>
             </div>
-            {error && (
-              <div className="border border-red-400 rounded-md p-4">
-                <p className="text-red-500">{error}</p>
-              </div>
-            )}
-          </main>
+          )}
         </div>
-        <footer className="m-auto p-4">
-          <a href="https://twitter.com/mayowaoshin">
-            Powered by ChatGPT. Demo built by Livingo.
-          </a>
-        </footer>
-      </Layout>
+      </div>
+      {/* <div className={styles.center}> */}
+      <div className={styles.cloudform}>
+        <form onSubmit={handleSubmit}>
+          <textarea
+            disabled={loading}
+            onKeyDown={handleEnter}
+            ref={textAreaRef}
+            autoFocus={false}
+            rows={1}
+            maxLength={512}
+            id="userInput"
+            name="userInput"
+            placeholder={
+              loading
+                ? 'Waiting for response...'
+                : 'Lets discuss about your case here?'
+            }
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className={styles.textarea}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.generatebutton}
+          >
+            {loading ? (
+              <div className={styles.loadingwheel}>
+                <LoadingDots color="#000" />
+              </div>
+            ) : (
+              // Send icon SVG in input field
+              <svg
+                viewBox="0 0 20 20"
+                className={styles.svgicon}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+              </svg>
+            )}
+          </button>
+        </form>
+      </div>
+      {/* </div> */}
+      {error && (
+        <div className="border border-red-400 rounded-md p-4">
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {/* </main> */}
+      {/* </div> */}
+      {/* </Layout> */}
     </>
   );
 }
