@@ -10,6 +10,13 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   const { question, history } = req.body;
+  
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Content-Type', 'text/event-stream;charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+
 
   if (!question) {
     return res.status(400).json({ message: 'No question in the request' });
